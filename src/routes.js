@@ -157,7 +157,7 @@ const routes = [
 			description: 'Create an Order',
 			notes: 'Create an Order',
 			tags: ['api'],
-			auth: 'jwt',
+			// auth: 'jwt',
 			validate: {
 				payload: {
 					"line_items": Joi.array().items(Joi.object({
@@ -172,12 +172,11 @@ const routes = [
 			return new Promise((resolve, reject) => {
 				shopify.draftOrder.create(request.payload)
 					.then(function (result) {
-						console.log(result, "result")
-						return resolve(result)
+						resolve(result)
 					})
 					.catch(function (error) {
 						console.log(error, "error")
-						return reject(Boom.badGateway(error))
+						reject(Boom.badGateway(error))
 					})
 			})
 		}

@@ -1,5 +1,3 @@
-'use strict';
-
 const Hapi = require('hapi');
 import routes from './routes'
 
