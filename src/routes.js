@@ -4,9 +4,15 @@ const Shopify = require('shopify-api-node');
 
 const Boom = require('boom');
 const Joi = require('joi');
-const async = require('async');
 const JWT = require('jsonwebtoken');  // used to sign our content
 require('dotenv').config();
+
+const shopify = new Shopify({
+	shopName: process.env.SHOP_NAME,
+	apiKey: process.env.SHOPIFY_API_PUBLIC_KEY,
+	password: process.env.SHOPIFY_PASSWORD,
+	autoLimit: { calls: 2, interval: 1000, bucketSize: 30 }
+});
 
 const routes = [
 	{
@@ -110,31 +116,68 @@ const routes = [
 		}
 	},
 	{
-		method: 'POST',
-		path: '/shopify/inventory',
+		method: 'GET',
+		path: '/shopify/get/inventoryItems',
 		config: {
 			description: 'Retrieve product information from the inventory',
 			notes: 'Retrieve product information from the inventory',
 			tags: ['api'],
-			// auth: 'jwt'
+			auth: 'jwt'
 		},
 		handler: async (request, h) => {
 			return new Promise((resolve, reject) => {
-
-				const shopify = new Shopify({
-					shopName: process.env.SHOP_NAME,
-					apiKey: process.env.SHOPIFY_API_PUBLIC_KEY,
-					password: process.env.SHOPIFY_PASSWORD,
-					autoLimit: { calls: 2, interval: 1000, bucketSize: 30 }
-				});
-
 				shopify.product.list({ limit: 2 })
-					.then(function (result) {
-						return resolve({ "data": result })
+					.then(function (products) {
+						let ids = '';
+						products.forEach((product) => {
+							product.variants.forEach((variant) => {
+								ids += `${variant.inventory_item_id},`
+							});
+						});
+						ids = ids.slice(1, ids.length - 1)
+						return ids
+					})
+					.then((inventory_item_ids) => {
+						shopify.inventoryItem.list({ ids: inventory_item_ids })
+							.then((result) => {
+								resolve(result)
+							})
 					})
 					.catch(function (error) {
 						console.log(error);
-						return reject(Boom.notAcceptable(error))
+						reject(Boom.badGateway(error))
+					})
+			})
+		}
+	},
+	{
+		method: 'POST',
+		path: '/shopify/create/order',
+		config: {
+			description: 'Create an Order',
+			notes: 'Create an Order',
+			tags: ['api'],
+			auth: 'jwt',
+			validate: {
+				payload: {
+					"line_items": Joi.array().items(Joi.object({
+						"title": Joi.string(),
+						"price": Joi.string(),
+						"quantity": Joi.number()
+					})).required()
+				}
+			}
+		},
+		handler: async (request, h) => {
+			return new Promise((resolve, reject) => {
+				shopify.draftOrder.create(request.payload)
+					.then(function (result) {
+						console.log(result, "result")
+						return resolve(result)
+					})
+					.catch(function (error) {
+						console.log(error, "error")
+						return reject(Boom.badGateway(error))
 					})
 			})
 		}
@@ -142,3 +185,4 @@ const routes = [
 ]
 
 export default routes;
+
