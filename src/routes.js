@@ -83,8 +83,8 @@ const routes = [
 			tags: ['api'],
 			validate: {
 				payload: {
-					email: Joi.string(),
-					password: Joi.string()
+					email: Joi.string().required(),
+					password: Joi.string().required()
 				}
 			}
 		},
@@ -122,11 +122,16 @@ const routes = [
 			description: 'Retrieve product information from the inventory',
 			notes: 'Retrieve product information from the inventory',
 			tags: ['api'],
-			auth: 'jwt'
+			auth: 'jwt',
+			validate: {
+				query: {
+					"limit": Joi.number().required()
+				}
+			}
 		},
 		handler: async (request, h) => {
 			return new Promise((resolve, reject) => {
-				shopify.product.list({ limit: 2 })
+				shopify.product.list({ limit: request.query.limit })
 					.then(function (products) {
 						let ids = '';
 						products.forEach((product) => {
@@ -157,7 +162,7 @@ const routes = [
 			description: 'Create an Order',
 			notes: 'Create an Order',
 			tags: ['api'],
-			// auth: 'jwt',
+			auth: 'jwt',
 			validate: {
 				payload: {
 					"line_items": Joi.array().items(Joi.object({
