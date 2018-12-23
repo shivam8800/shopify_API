@@ -6,14 +6,18 @@ import routes from './routes'
 const Inert = require('inert');
 const Vision = require('vision');
 const HapiSwagger = require('hapi-swagger');
+//db connection established
+const db = require('../database').db;
+
+
 // validation function
-const validate = async function (user,decoded, request) {
+const validate = async function (user, decoded, request) {
     // checks to see if the person is valid
     if (!user['_id']) {
-      return { isValid: false };
+        return { isValid: false };
     }
     else {
-      return { isValid: true };
+        return { isValid: true };
     }
 };
 
@@ -22,10 +26,10 @@ const init = async () => {
     const server = new Hapi.Server({ port: 8080 });
     const swaggerOptions = {
         info: {
-                title: 'Test API Documentation'
-            },
-        };
-    
+            title: 'Test API Documentation'
+        },
+    };
+
     await server.register([
         Inert,
         Vision,
@@ -38,14 +42,15 @@ const init = async () => {
     await server.register(require('hapi-auth-jwt2'));
 
     server.auth.strategy('jwt', 'jwt',
-      { key: 'vZiIpmTzqXHp8PpYXTwqc9SRQ1UAyAfC',
-        validate:validate,
-        verifyOptions: { algorithms: [ 'HS256' ] }
-      });
+        {
+            key: 'vZiIpmTzqXHp8PpYXTwqc9SRQ1UAyAfC',
+            validate: validate,
+            verifyOptions: { algorithms: ['HS256'] }
+        });
 
     // server.auth.default('jwt');
 
-    server.route( routes );
+    server.route(routes);
 
     await server.start();
     console.log(`Server running at: ${server.info.uri}`);

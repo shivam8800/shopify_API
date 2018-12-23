@@ -1,8 +1,12 @@
-var UserModel = require('../models/user');
+const UserModel = require('../models/user');
 
-var Joi = require('joi');
-var async = require('async');
+const Shopify = require('shopify-api-node');
+
+const Boom = require('boom');
+const Joi = require('joi');
+const async = require('async');
 const JWT = require('jsonwebtoken');  // used to sign our content
+require('dotenv').config();
 
 const routes = [
 	{
@@ -38,7 +42,7 @@ const routes = [
 							message: 'This user is already exist'
 						});
 					} else {
-						var newUser = new UserModel({
+						const newUser = new UserModel({
 							"name": request.payload.name,
 							"email": request.payload.email,
 							"password": request.payload.password
@@ -103,6 +107,36 @@ const routes = [
 			}
 			return new Promise(pr)
 
+		}
+	},
+	{
+		method: 'POST',
+		path: '/shopify/inventory',
+		config: {
+			description: 'Retrieve product information from the inventory',
+			notes: 'Retrieve product information from the inventory',
+			tags: ['api'],
+			// auth: 'jwt'
+		},
+		handler: async (request, h) => {
+			return new Promise((resolve, reject) => {
+
+				const shopify = new Shopify({
+					shopName: process.env.SHOP_NAME,
+					apiKey: process.env.SHOPIFY_API_PUBLIC_KEY,
+					password: process.env.SHOPIFY_PASSWORD,
+					autoLimit: { calls: 2, interval: 1000, bucketSize: 30 }
+				});
+
+				shopify.product.list({ limit: 2 })
+					.then(function (result) {
+						return resolve({ "data": result })
+					})
+					.catch(function (error) {
+						console.log(error);
+						return reject(Boom.notAcceptable(error))
+					})
+			})
 		}
 	}
 ]
