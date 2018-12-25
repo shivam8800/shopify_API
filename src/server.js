@@ -21,6 +21,7 @@ const validate = async function (user, decoded, request) {
 
 
 const init = async () => {
+    //creating a server
     const server = new Hapi.Server({ port: 8080 });
     const swaggerOptions = {
         info: {
@@ -28,6 +29,7 @@ const init = async () => {
         },
     };
 
+    //register hapi swagger documentation
     await server.register([
         Inert,
         Vision,
@@ -37,6 +39,7 @@ const init = async () => {
         }
     ]);
 
+    //register hapi-auth-jwt2 for authentication
     await server.register(require('hapi-auth-jwt2'));
 
     server.auth.strategy('jwt', 'jwt',
@@ -46,8 +49,16 @@ const init = async () => {
             verifyOptions: { algorithms: ['HS256'] }
         });
 
-    // server.auth.default('jwt');
+    //registering handlebar
+    server.views({
+        engines: {
+            html: require('handlebars')
+        },
+        relativeTo: __dirname,
+        path: './templates'
+    });
 
+    //registering all routes
     server.route(routes);
 
     await server.start();

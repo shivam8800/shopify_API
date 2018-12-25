@@ -16,6 +16,18 @@ const shopify = new Shopify({
 
 const routes = [
 	{
+		method: 'GET',
+		path: '/',
+		config: {
+			description: 'Home page',
+			notes: 'Home page',
+			tags: ['api'],
+		},
+		handler: async (request, h) =>{
+			return h.view('index', { 'title': 'Home Page Shopify Api' });
+		}
+	},
+	{
 		method: 'POST',
 		path: '/post/signup',
 		config: {
@@ -131,6 +143,7 @@ const routes = [
 		},
 		handler: async (request, h) => {
 			return new Promise((resolve, reject) => {
+				//getting product list from which we will get ids of inventoryItem
 				shopify.product.list({ limit: request.query.limit })
 					.then(function (products) {
 						let ids = '';
@@ -140,9 +153,11 @@ const routes = [
 							});
 						});
 						ids = ids.slice(1, ids.length - 1)
+						//returning ids of inventoryItems
 						return ids
 					})
 					.then((inventory_item_ids) => {
+						//fetching inventoryItems
 						shopify.inventoryItem.list({ ids: inventory_item_ids })
 							.then((result) => {
 								resolve(result)
@@ -175,6 +190,7 @@ const routes = [
 		},
 		handler: async (request, h) => {
 			return new Promise((resolve, reject) => {
+				//creating order
 				shopify.draftOrder.create(request.payload)
 					.then(function (result) {
 						resolve(result)
