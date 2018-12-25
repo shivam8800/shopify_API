@@ -4,7 +4,6 @@ const Shopify = require('shopify-api-node');
 
 const Boom = require('boom');
 const Joi = require('joi');
-const JWT = require('jsonwebtoken');  // used to sign our content
 require('dotenv').config();
 
 const shopify = new Shopify({
@@ -24,66 +23,7 @@ const routes = [
 			tags: ['api'],
 		},
 		handler: async (request, h) =>{
-			return h.view('index', { 'title': 'Home Page Shopify Api' });
-		}
-	},
-	{
-		method: 'POST',
-		path: '/post/signup',
-		config: {
-			description: 'signup',
-			notes: 'user can register yourself',
-			tags: ['api'],
-			// we joi plugin to validate request
-			validate: {
-				payload: {
-					name: Joi.string().required(),
-					email: Joi.string().required(),
-					password: Joi.string().required()
-				}
-			}
-		},
-		handler: async (request, h) => {
-
-			let pr = async (resolve, reject) => {
-				UserModel.find({ 'email': request.payload.email }, function (err, data) {
-
-					if (err) {
-						return reject({
-							statusCode: 500,
-							message: "error handled",
-							data: err
-						});
-					} else if (data.length != 0) {
-						return resolve({
-							statusCode: 201,
-							message: 'This user is already exist'
-						});
-					} else {
-						const newUser = new UserModel({
-							"name": request.payload.name,
-							"email": request.payload.email,
-							"password": request.payload.password
-						});
-						newUser.save(function (err, user) {
-							if (err) {
-								return reject({
-									data: err,
-									message: "error handled"
-								});
-							} else {
-								return resolve({
-									statusCode: 200,
-									message: "you have Successfully created use",
-									data: user
-								});
-							}
-						})
-					}
-
-				});
-			}
-			return new Promise(pr)
+			return h.view('login', { 'title': 'Login' });
 		}
 	},
 	{
@@ -102,23 +42,45 @@ const routes = [
 		},
 		handler: async (request, h) => {
 			let pr = async (resolve, reject) => {
-				UserModel.find({ 'email': request.payload.email }, function (err, data) {
+				console.log(request.payload)
+				UserModel.find({ 'email': request.payload.email },async function (err, data) {
 					if (err) {
 						return reject({
 							'error': err
 						});
 					} else if (data.length == 0) {
-						return resolve({
-							'data': "user does not exist!"
+						const newUser = new UserModel({
+							"email": request.payload.email,
+							"password": request.payload.password
 						});
+						newUser.save(function async (err, user) {
+							if (err) {
+								return reject({
+									data: err,
+									message: "error handled"
+								});
+							} else {
+								const token = UserModel.generateToken(user['_id'])
+								return resolve({
+									token: token,
+									userid: user['_id'],
+								});
+							}
+						})
 					} else {
-						if (request.payload.password == data[0]['password']) {
-							const token = JWT.sign(data[0].toJSON(), "vZiIpmTzqXHp8PpYXTwqc9SRQ1UAyAfC"); // synchronous
+						const validUser = await UserModel.login(request.payload.email, request.payload.password);
 
+						if (validUser) {
+							const token = UserModel.generateToken(data[0]['_id'])
 							return resolve({
-								token,
+								token: token,
 								userid: data[0]['_id'],
 							});
+						} else {
+							return reject({
+									status: "error",
+									message: "Invalid password"
+								});
 						}
 					}
 				});
