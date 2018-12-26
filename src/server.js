@@ -22,7 +22,10 @@ const validate = async function (user, decoded, request) {
 
 const init = async () => {
     //creating a server
-    const server = new Hapi.Server({ port: 8080 });
+    const server = new Hapi.Server({
+        port: 8080,
+        routes: { cors: true }
+    });
     const swaggerOptions = {
         info: {
             title: 'Test API Documentation'
@@ -39,6 +42,18 @@ const init = async () => {
         }
     ]);
 
+    // cookie
+    await server.register(require('hapi-auth-cookie'));
+      server.auth.strategy('restricted', 'cookie',
+      {
+        ttl: 24 * 60 * 60 * 1000,
+        password: 'vZiYpmTzqXMp8PpYXKwqc9ShQ1UhyAfy',
+        cookie: 'shopify-cookie',
+        isSecure: false,
+        redirectTo: '/',
+        isSameSite: 'Lax'
+      });
+
     //register hapi-auth-jwt2 for authentication
     await server.register(require('hapi-auth-jwt2'));
 
@@ -54,9 +69,23 @@ const init = async () => {
         engines: {
             html: require('handlebars')
         },
-        relativeTo: __dirname,
-        path: './templates',
-        helpersPath: './templates/helpers'
+        path: 'templates',
+        layout: 'layout'
+    });
+
+
+    server.route({
+        path: '/{path*}',
+        method: ["GET", "POST"],
+
+        handler: {
+            directory: {
+                path: 'templates',
+                listing: true,
+
+            }
+        }
+
     });
 
     //registering all routes

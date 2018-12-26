@@ -23,7 +23,31 @@ const routes = [
 			tags: ['api'],
 		},
 		handler: async (request, h) =>{
-			return h.view('login', { 'title': 'Login' });
+			return h.view('index', { 'title': 'Login' });
+		}
+	},
+	{
+	method: 'GET',
+	path: '/logout',
+	handler:(request, h)=>{
+		request.cookieAuth.clear();
+		return h.redirect('/')
+
+		}
+	},
+	{
+		method: 'GET',
+		path: '/user/profile',
+		config: {
+			description: 'Home page',
+			notes: 'Home page',
+			tags: ['api'],
+			auth:{
+	         	strategy: 'restricted',
+	         },
+		},
+		handler: async (request, h) =>{
+			return h.view('user', { 'userid': request.query.email });
 		}
 	},
 	{
@@ -61,6 +85,7 @@ const routes = [
 								});
 							} else {
 								const token = UserModel.generateToken(user['_id'])
+								request.cookieAuth.set({ token });
 								return resolve({
 									token: token,
 									userid: user['_id'],
@@ -72,6 +97,7 @@ const routes = [
 
 						if (validUser) {
 							const token = UserModel.generateToken(data[0]['_id'])
+							request.cookieAuth.set({ token });
 							return resolve({
 								token: token,
 								userid: data[0]['_id'],
