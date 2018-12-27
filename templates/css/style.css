@@ -1,25 +1,72 @@
+.signin{
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  height: 100vh;
+  justify-content: center;
+}
 .container{
-	display: flex;
-	justify-content: center;
+  height: 61vh;
+  flex-direction: column;
+  display: flex;
+  width: 34%;
+  justify-content: center;
 }
 .inputField{
-	margin: 5%;
-}
-.child-container{
-	background: #e3e3e399;
-    width: 40%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 55vh;
-    align-items: center;
+    margin: 5%;
 }
 .user-container{
-    display: flex;
-    justify-content: center;
-    height: 100vh;
-    align-items: center;
+    margin: 20px;
 }
 .logout{
     margin: 31px 24px 0px 5px;
+}
+#section_9{
+    margin: 20px;
+}
+
+
+.form-group {
+  position: relative;
+}
+
+.form-control {
+  margin-bottom: 25px;
+  border-radius: 0;
+  border: 1px solid $primary-dark;
+  border-width: 0 0 1px 0;
+  padding:20px 20px 10px 0;
+  display: block;
+  background: transparent;
+  color: #666;
+  transition:0.3s ease-in-out all;
+
+  &:focus {
+    opacity: .3;
+    border-color: transparent;
+    color: $primary;
+    background: $primary-dark;
+    box-shadow: 0 0 0 0.2rem $primary-dark;
+    box-shadow: none;
+  }
+}
+
+.form-control:valid { color: $primary; }
+
+input:valid ~ label,
+.form-control:focus ~ .form-label
+{
+  top: 2px;
+  color: #777;
+  font-size: 0.8rem;
+}
+
+.form-label {
+  color: $primary;
+  font-size:16px;
+  position:absolute;
+  pointer-events:none;
+  left:2px;
+  top:18px;
+  transition:0.3s ease-in-out all;
 }

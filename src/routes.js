@@ -23,7 +23,7 @@ const routes = [
 			tags: ['api'],
 		},
 		handler: async (request, h) =>{
-			return h.view('index', { 'title': 'Login' });
+			return h.view('login', { 'title': 'Login' });
 		}
 	},
 	{
@@ -47,7 +47,7 @@ const routes = [
 	         },
 		},
 		handler: async (request, h) =>{
-			return h.view('user', { 'userid': request.query.email });
+			return h.view('index', { 'userid': request.query.email });
 		}
 	},
 	{
@@ -69,20 +69,15 @@ const routes = [
 				console.log(request.payload)
 				UserModel.find({ 'email': request.payload.email },async function (err, data) {
 					if (err) {
-						return reject({
-							'error': err
-						});
+						return resolve({"status": "error", "message": err})
 					} else if (data.length == 0) {
 						const newUser = new UserModel({
 							"email": request.payload.email,
 							"password": request.payload.password
 						});
-						newUser.save(function async (err, user) {
+						newUser.save(function async (error, user) {
 							if (err) {
-								return reject({
-									data: err,
-									message: "error handled"
-								});
+								return resolve({"status": "error", "message": error})
 							} else {
 								const token = UserModel.generateToken(user['_id'])
 								request.cookieAuth.set({ token });
@@ -103,10 +98,7 @@ const routes = [
 								userid: data[0]['_id'],
 							});
 						} else {
-							return reject({
-									status: "error",
-									message: "Invalid password"
-								});
+							return resolve({"status": "error", "message": "Invalid password"})
 						}
 					}
 				});
@@ -122,7 +114,7 @@ const routes = [
 			description: 'Retrieve product information from the inventory',
 			notes: 'Retrieve product information from the inventory',
 			tags: ['api'],
-			auth: 'jwt',
+			// auth: 'jwt',
 			validate: {
 				query: {
 					"limit": Joi.number().required()
