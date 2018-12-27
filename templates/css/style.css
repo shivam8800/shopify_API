@@ -70,3 +70,17 @@ input:valid ~ label,
   top:18px;
   transition:0.3s ease-in-out all;
 }
+
+#create_order{
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  border: none;
+  color: white;
+  padding: 10px 30px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 13px;
+  margin: 4px 2px;
+  cursor: pointer;
+}

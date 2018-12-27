@@ -157,27 +157,34 @@ const routes = [
 			description: 'Create an Order',
 			notes: 'Create an Order',
 			tags: ['api'],
-			auth: 'jwt',
+			auth:{
+	         	strategy: 'restricted',
+	         },
 			validate: {
 				payload: {
-					"line_items": Joi.array().items(Joi.object({
-						"title": Joi.string(),
-						"price": Joi.string(),
-						"quantity": Joi.number()
-					})).required()
+					"title": Joi.string(),
+					"price": Joi.number(),
+					"quantity": Joi.number()
 				}
 			}
 		},
 		handler: async (request, h) => {
 			return new Promise((resolve, reject) => {
 				//creating order
-				shopify.draftOrder.create(request.payload)
+				let order = {
+					"line_items": [{
+						"title": request.payload.title,
+						"price": request.payload.price,
+						"quantity": request.payload.quantity}
+					]
+				}
+				shopify.draftOrder.create(order)
 					.then(function (result) {
-						resolve(result)
+						return resolve(result)
 					})
 					.catch(function (error) {
-						console.log(error, "error")
-						reject(Boom.badGateway(error))
+						return resolve({"status": "error", "message": error})
+						// return reject(Boom.badGateway(error))
 					})
 			})
 		}
