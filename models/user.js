@@ -9,10 +9,11 @@ const JWT = require('jsonwebtoken');
 const Email = require('mongoose-type-mail');
 
 const UserSchema = mongoose.Schema({
-    email:{type:Email, required:true, index: {unique: true} },
+    email:{type:Email, required:true, index: {unique: true }},
 	password: { type: String, required: true }
 }, { collection: 'users' });
 
+UserSchema.index({ "email": 1 }, { unique: true }); // schema level
 
 UserSchema.statics.login = async function (email, password) {
     const user = await this.findOne({ email: email }).exec();
